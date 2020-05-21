@@ -122,7 +122,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
   @Override
   public void onPreviewSizeChosen(final Size size, final int rotation) {
-    System.out.println("  public void onPreviewSizeChosen(final Size size, final int rotation) ");
+    System.out.println(" public void onPreviewSizeChosen(final Size size, final int rotation) ");
     final float textSizePx =
         TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP, TEXT_SIZE_DIP, getResources().getDisplayMetrics());

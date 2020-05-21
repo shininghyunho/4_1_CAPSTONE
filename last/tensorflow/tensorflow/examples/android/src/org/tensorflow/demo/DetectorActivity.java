@@ -145,6 +145,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     Matrix rotateMatrix;
   @Override
   public void onPreviewSizeChosen(final Size size, final int rotation) {
+    LOGGER.i("  public void onPreviewSizeChosen(final Size size, final int rotation)");
     final float textSizePx =
         TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP, TEXT_SIZE_DIP, getResources().getDisplayMetrics());
@@ -280,6 +281,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
   @Override
   protected void processImage() {
+    LOGGER.i(" protected void processImage() ");
     ++timestamp;
     final long currTimestamp = timestamp;
     byte[] originalLuminance = getLuminance();
@@ -352,6 +354,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             recognizedContent = new Bitmap[results.size()];
             int contentIndex = 0;
 
+            // 탐색이 성공하면 for문 들어감
             for (final Classifier.Recognition result : results) {
               final RectF location = result.getLocation();
               if (location != null && result.getConfidence() >= minimumConfidence) {
@@ -361,53 +364,16 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                 result.setLocation(location);
                 mappedRecognitions.add(result);
 
-
-/////////////////////////second stage object dectection starts here
-                /*
-                Log.i("location:", location.left+":"+location.top);
-                int leftPoint = Math.round(location.left);
-                int topPoint = Math.round(location.top);
-                int secondWidth = Math.round(location.right- location.left);
-                int secondHeight = Math.round(location.bottom - location.top);
-
-                Log.i("secondWidth: ", secondWidth+"");
-                Log.i("secondHeight: ", secondHeight+"");
-                Log.i("wid_size: ", croppedBitmap.getWidth()+"");
-
-                //Bitmap secondCroppedBitmap = Bitmap.createBitmap(secondWidth, secondHeight, Config.ARGB_8888);
-                Bitmap secondCroppedBitmap = Bitmap.createBitmap(rgbFrameBitmap, leftPoint, topPoint, secondWidth, secondHeight);
-                //final Canvas tempCanvas = new Canvas(tempCroppedBitmap);
-
-
-
-                final List<Classifier.Recognition> secondResults = contentDetector.recognizeImage(secondCroppedBitmap);
-
-                float secondMinimumConfidence = MINIMUM_CONFIDENCE_TF_OD_API;
-
-                //final List<Classifier.Recognition> secondMappedRecognitions = new LinkedList<Classifier.Recognition>();
-
-                for (final Classifier.Recognition secondResult : secondResults) {
-                  final RectF secondLocation = secondResult.getLocation();
-                  if (secondLocation != null && secondResult.getConfidence() >= secondMinimumConfidence) {
-                    canvas.drawRect(secondLocation, paint);
-
-                    cropToFrameTransform.mapRect(secondLocation);
-                    secondResult.setLocation(secondLocation);
-                    mappedRecognitions.add(secondResult);
-
-                  }
-                }
-                */
-
-
-
-
 /////////////////////////OCR starts here
                 Log.i("location:", location.left+":"+location.top);
                 int leftPoint = Math.round(location.left);
-                int topPoint = Math.round(location.top);
+                //int leftPoint = 0; // 왼쪽 끝까지 포인트
+                //int topPoint = Math.round(location.top);
+                int topPoint = 0;
                 int secondWidth = Math.round(location.right- location.left);
-                int secondHeight = Math.round(location.bottom - location.top);
+                //int secondWidth = 416;
+                //int secondHeight = Math.round(location.bottom - location.top);
+                int secondHeight = 416;
                 Log.i("Title : ", result.getTitle());
                 Log.i("secondWidth: ", secondWidth+"");
                 Log.i("secondHeight: ", secondHeight+"");
@@ -439,22 +405,26 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
   @Override
   protected int getLayoutId() {
+    LOGGER.i(" protected int getLayoutId() ");
     return R.layout.camera_connection_fragment_tracking;
   }
 
   @Override
   protected Size getDesiredPreviewFrameSize() {
+    LOGGER.i(" protected Size getDesiredPreviewFrameSize() ");
     return DESIRED_PREVIEW_SIZE;
   }
 
   @Override
   public void onSetDebug(final boolean debug) {
+    LOGGER.i("  public void onSetDebug(final boolean debug) ");
     detector.enableStatLogging(debug);
   }
 
   @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
+  protected void onCreate(Bundle savedInstanceState) { // 액티비티 시작
+    LOGGER.i("  protected void onCreate(Bundle savedInstanceState) ");
+    super.onCreate(savedInstanceState); // extend한 Camera Activity로
     /*
     setContentView(R.layout.activity_main);
 
@@ -462,13 +432,23 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     surfaceView = findViewById(R.id.surfaceView);
     textView = findViewById(R.id.textView);
     */
+
     button = findViewById(R.id.button);
     imageView = findViewById(R.id.imageView);
     button.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
+        // 캡처를 여러번 실행하도록 하자
+        for(int i=0;i<10;i++){
+          // sleep 0.1초하고
+          try{
+            Thread.sleep((long) 0.1);
+          }catch(InterruptedException e){}
+
+          // 디텍트
           CameraActivity.stopDetection = true;
           capture();
+        }
       }
     });
 
@@ -476,7 +456,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     rotateMatrix.postRotate(90);
 
 
-
+    System.out.println("  tessBaseAPI = new TessBaseAPI();");
     tessBaseAPI = new TessBaseAPI();
     String dir = getFilesDir() + "/tesseract";
     if(checkLanguageFile(dir+"/tessdata"))
@@ -487,6 +467,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
   boolean checkLanguageFile(String dir)
   {
+    LOGGER.i("  boolean checkLanguageFile(String dir) ");
     File file = new File(dir);
     if(!file.exists() && file.mkdirs())
       createFiles(dir);
@@ -502,6 +483,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
   private void createFiles(String dir)
   {
+    LOGGER.i("  private void createFiles(String dir) ");
     AssetManager assetMgr = this.getAssets();
 
     InputStream inputStream = null;
@@ -529,6 +511,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
   private void capture()
   {
+    LOGGER.i("  private void capture() ");
     /*
       final Bitmap[] arr = new Bitmap[recognizedContent.size()];
       for(int i = 0; i < recognizedContent.size(); i++) {
@@ -537,18 +520,28 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
       }
 
      */
-    button.setEnabled(false);
-    imageView.setImageBitmap(recognizedContent[0]);
-    new AsyncTess().execute(recognizedContent);
+    for(int i=0;i<10;i++){
+      // sleep 하고
+      try{
+        Thread.sleep((long)0.5);
+      }catch (InterruptedException e){}
+
+      // detect 시작
+      button.setEnabled(false);
+      imageView.setImageBitmap(recognizedContent[0]);
+      new AsyncTess().execute(recognizedContent);
+    }
 
   }
 
 
 
   private class AsyncTess extends AsyncTask<Bitmap, Integer, String> {
+
     // 여기가 테저렉트 쓰는 부분임
     @Override
     protected String doInBackground(Bitmap... bitmapList) {
+      LOGGER.i("  protected String doInBackground(Bitmap... bitmapList) ");
       long startTime = System.currentTimeMillis();
       String result = "";
 
@@ -566,6 +559,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     }
 
     protected void onPostExecute(String result) {
+      LOGGER.i("  protected void onPostExecute(String result) ");
       //완료 후 버튼 속성 변경 및 결과 출력
 
       button.setEnabled(true);

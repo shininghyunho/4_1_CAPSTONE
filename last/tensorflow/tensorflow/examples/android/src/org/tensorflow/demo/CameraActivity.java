@@ -73,15 +73,19 @@ public abstract class CameraActivity extends Activity
   public static boolean stopDetection=false;
 
   @Override
-  protected void onCreate(final Bundle savedInstanceState) {
+  protected void onCreate(final Bundle savedInstanceState) { // Detector로부터 호출됨
     LOGGER.d("onCreate " + this);
+    System.out.println("  super.onCreate(null);");
     super.onCreate(null);
+    System.out.println("  getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);");
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+    System.out.println("  setContentView(R.layout.activity_camera);");
     setContentView(R.layout.activity_camera);
 
     if (hasPermission()) {
-      setFragment();
+      System.out.println("  setFragment();");
+      setFragment(); // Camera Activity에 함수 호출
     } else {
       requestPermission();
     }
@@ -107,6 +111,7 @@ public abstract class CameraActivity extends Activity
    */
   @Override
   public void onPreviewFrame(final byte[] bytes, final Camera camera) {
+    System.out.println("  public void onPreviewFrame(final byte[] bytes, final Camera camera)");
     if (isProcessingFrame) {
       LOGGER.w("Dropping frame!");
       return;
@@ -156,6 +161,7 @@ public abstract class CameraActivity extends Activity
    */
   @Override
   public void onImageAvailable(final ImageReader reader) {
+    LOGGER.i("  public void onImageAvailable(final ImageReader reader)");
     //We need wait until we have some size from onPreviewSizeChosen
     if (previewWidth == 0 || previewHeight == 0) {
       return;
@@ -267,14 +273,17 @@ public abstract class CameraActivity extends Activity
   }
 
   protected synchronized void runInBackground(final Runnable r) {
+    LOGGER.i("protected synchronized void runInBackground(final Runnable r)");
     if (handler != null) {
-      handler.post(r);
+      handler.post(r); // 러너블 객체를 송신측에서 등록 - 핸드러에 연결된 메시지큐에 추가
     }
   }
 
   @Override
   public void onRequestPermissionsResult(
       final int requestCode, final String[] permissions, final int[] grantResults) {
+    LOGGER.i(" public void onRequestPermissionsResult(\n" +
+            "      final int requestCode, final String[] permissions, final int[] grantResults)");
     if (requestCode == PERMISSIONS_REQUEST) {
       if (grantResults.length > 0
           && grantResults[0] == PackageManager.PERMISSION_GRANTED
@@ -287,6 +296,7 @@ public abstract class CameraActivity extends Activity
   }
 
   private boolean hasPermission() {
+    LOGGER.i("private boolean hasPermission()");
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
       return checkSelfPermission(PERMISSION_CAMERA) == PackageManager.PERMISSION_GRANTED &&
           checkSelfPermission(PERMISSION_STORAGE) == PackageManager.PERMISSION_GRANTED;
@@ -296,6 +306,7 @@ public abstract class CameraActivity extends Activity
   }
 
   private void requestPermission() {
+    LOGGER.i("private void requestPermission()");
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
       if (shouldShowRequestPermissionRationale(PERMISSION_CAMERA) ||
           shouldShowRequestPermissionRationale(PERMISSION_STORAGE)) {
@@ -309,6 +320,8 @@ public abstract class CameraActivity extends Activity
   // Returns true if the device supports the required hardware level, or better.
   private boolean isHardwareLevelSupported(
       CameraCharacteristics characteristics, int requiredLevel) {
+    LOGGER.i("private boolean isHardwareLevelSupported(\n" +
+            "      CameraCharacteristics characteristics, int requiredLevel)");
     int deviceLevel = characteristics.get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL);
     if (deviceLevel == CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY) {
       return requiredLevel == deviceLevel;
@@ -318,6 +331,7 @@ public abstract class CameraActivity extends Activity
   }
 
   private String chooseCamera() {
+    LOGGER.i("  private String chooseCamera() ");
     final CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
     try {
       for (final String cameraId : manager.getCameraIdList()) {
@@ -353,7 +367,8 @@ public abstract class CameraActivity extends Activity
   }
 
   protected void setFragment() {
-    String cameraId = chooseCamera();
+    LOGGER.i("  protected void setFragment()");
+    String cameraId = chooseCamera(); // Camera Activity에 함수 호출
     if (cameraId == null) {
       Toast.makeText(this, "No Camera Detected", Toast.LENGTH_SHORT).show();
       finish();
@@ -368,6 +383,7 @@ public abstract class CameraActivity extends Activity
                 public void onPreviewSizeChosen(final Size size, final int rotation) {
                   previewHeight = size.getHeight();
                   previewWidth = size.getWidth();
+                  System.out.println("  CameraActivity.this.onPreviewSizeChosen(size, rotation);");
                   CameraActivity.this.onPreviewSizeChosen(size, rotation);
                 }
               },
@@ -389,6 +405,7 @@ public abstract class CameraActivity extends Activity
   }
 
   protected void fillBytes(final Plane[] planes, final byte[][] yuvBytes) {
+    LOGGER.i("  protected void fillBytes(final Plane[] planes, final byte[][] yuvBytes)");
     // Because of the variable row stride it's not possible to know in
     // advance the actual necessary dimensions of the yuv planes.
     for (int i = 0; i < planes.length; ++i) {
@@ -406,6 +423,7 @@ public abstract class CameraActivity extends Activity
   }
 
   public void requestRender() {
+    LOGGER.i("public void requestRender()");
     final OverlayView overlay = (OverlayView) findViewById(R.id.debug_overlay);
     if (overlay != null) {
       overlay.postInvalidate();
@@ -413,6 +431,7 @@ public abstract class CameraActivity extends Activity
   }
 
   public void addCallback(final OverlayView.DrawCallback callback) {
+    LOGGER.i("public void addCallback");
     final OverlayView overlay = (OverlayView) findViewById(R.id.debug_overlay);
     if (overlay != null) {
       overlay.addCallback(callback);
@@ -434,12 +453,14 @@ public abstract class CameraActivity extends Activity
   }
 
   protected void readyForNextImage() {
+    LOGGER.i("protected void readyForNextImage()");
     if (postInferenceCallback != null) {
-      postInferenceCallback.run();
+      postInferenceCallback.run(); // 메시지 큐에 있는 메시지 하나 실행
     }
   }
 
   protected int getScreenOrientation() {
+    LOGGER.i("protected int getScreenOrientation()");
     switch (getWindowManager().getDefaultDisplay().getRotation()) {
       case Surface.ROTATION_270:
         return 270;

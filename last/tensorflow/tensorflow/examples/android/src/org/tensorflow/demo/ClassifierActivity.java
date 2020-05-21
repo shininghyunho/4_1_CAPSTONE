@@ -150,6 +150,7 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
 
   @Override
   protected void processImage() {
+    System.out.println(" ClassifierActivity : protected void processImage()");
     rgbFrameBitmap.setPixels(getRgbBytes(), 0, previewWidth, 0, 0, previewWidth, previewHeight);
     final Canvas canvas = new Canvas(croppedBitmap);
     canvas.drawBitmap(rgbFrameBitmap, frameToCropTransform, null);
