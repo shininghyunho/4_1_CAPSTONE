@@ -59,6 +59,8 @@ import org.tensorflow.demo.env.Logger;
 import org.tensorflow.demo.tracking.MultiBoxTracker;
 import org.tensorflow.demo.R; // Explicit import needed for internal Google builds.
 
+import static org.tensorflow.demo.HEFFAN_filter.text_adapter;
+
 /**
  * An activity that uses a TensorFlowMultiBoxDetector and ObjectTracker to detect and then track
  * objects.
@@ -520,10 +522,10 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
       }
 
      */
-    for(int i=0;i<10;i++){
+    for(int i=0;i<5;i++){
       // sleep 하고
       try{
-        Thread.sleep((long)0.5);
+        Thread.sleep((long)1);
       }catch (InterruptedException e){}
 
       // detect 시작
@@ -555,6 +557,8 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
       long endTime = System.currentTimeMillis();
 
+      //supplement_filter();
+      text_adapter(result);
       return "result::::"+result + "\n" + (endTime - startTime);
     }
 
@@ -564,9 +568,10 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
       button.setEnabled(true);
 
-
       Log.i("ocr::", result);
     }
+
+
 
 
   }
